@@ -4,16 +4,27 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "comfyui-nukemax-nodes"
-version = "0.1.0"
+version = "0.2.0"
 description = "Hybrid VFX/AI bridge nodes for ComfyUI: roto, FFT-guided gen, PBR relight, audio-reactive, optical flow compositing, smart edges."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
-authors = [{ name = "NukeMax" }]
+authors = [{ name = "Likhith-24" }]
 dependencies = [
     "torch>=2.0",
     "numpy>=1.24",
+    "opencv-python>=4.8",
+    "pillow>=10.0",
 ]
+
+[project.urls]
+Repository = "https://github.com/Likhith-24/ComfyUI-NukeNodePack"
+Issues = "https://github.com/Likhith-24/ComfyUI-NukeNodePack/issues"
+
+[tool.comfy]
+PublisherId = "likhith-24"
+DisplayName = "NukeMax Nodes"
+Icon = "https://i.pinimg.com/736x/5d/52/19/5d5219ef27c1530bea027ff95d352e05.jpg"
 
 [project.optional-dependencies]
 audio = ["librosa>=0.10", "soundfile>=0.12"]
