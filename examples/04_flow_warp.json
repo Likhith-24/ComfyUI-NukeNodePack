@@ -1,0 +1,42 @@
+{
+  "1": {
+    "class_type": "LoadImage",
+    "inputs": { "image": "frame_a.png", "upload": "image" }
+  },
+  "2": {
+    "class_type": "LoadImage",
+    "inputs": { "image": "frame_b.png", "upload": "image" }
+  },
+  "3": {
+    "class_type": "NukeMax_ComputeOpticalFlow",
+    "inputs": {
+      "image_a": ["1", 0],
+      "image_b": ["2", 0],
+      "method": "lk",
+      "pyramid_levels": 3
+    }
+  },
+  "4": {
+    "class_type": "NukeMax_FlowBackwardWarp",
+    "inputs": {
+      "image": ["1", 0],
+      "flow": ["3", 0],
+      "direction": "forward"
+    }
+  },
+  "5": {
+    "class_type": "NukeMax_FlowVisualize",
+    "inputs": {
+      "flow": ["3", 0],
+      "max_magnitude": 16.0
+    }
+  },
+  "6": {
+    "class_type": "PreviewImage",
+    "inputs": { "images": ["4", 0] }
+  },
+  "7": {
+    "class_type": "PreviewImage",
+    "inputs": { "images": ["5", 0] }
+  }
+}

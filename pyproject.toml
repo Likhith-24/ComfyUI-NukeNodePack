@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "comfyui-nukemax-nodes"
+version = "0.1.0"
+description = "Hybrid VFX/AI bridge nodes for ComfyUI: roto, FFT-guided gen, PBR relight, audio-reactive, optical flow compositing, smart edges."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "NukeMax" }]
+dependencies = [
+    "torch>=2.0",
+    "numpy>=1.24",
+]
+
+[project.optional-dependencies]
+audio = ["librosa>=0.10", "soundfile>=0.12"]
+flow = ["opencv-python-headless>=4.8"]
+test = ["pytest>=7", "scipy>=1.10"]
+
+[tool.setuptools.packages.find]
+include = ["nukemax*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

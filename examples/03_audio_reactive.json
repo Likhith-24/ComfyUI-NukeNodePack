@@ -1,0 +1,41 @@
+{
+  "1": {
+    "class_type": "LoadImage",
+    "inputs": { "image": "frame.png", "upload": "image" }
+  },
+  "2": {
+    "class_type": "NukeMax_AudioLoadAnalyze",
+    "inputs": {
+      "path": "input/track.wav",
+      "n_fft": 2048,
+      "hop_length": 512
+    }
+  },
+  "3": {
+    "class_type": "NukeMax_AudioToFloatCurve",
+    "inputs": {
+      "audio": ["2", 0],
+      "frame_count": 60,
+      "fps": 30.0,
+      "band": "bass",
+      "smoothing": 0.1,
+      "gain": 1.5
+    }
+  },
+  "4": {
+    "class_type": "NukeMax_AudioDriveSchedule",
+    "inputs": {
+      "curve": ["3", 0],
+      "min_value": 4.0,
+      "max_value": 12.0
+    }
+  },
+  "5": {
+    "class_type": "NukeMax_AudioSpectrogram",
+    "inputs": { "audio": ["2", 0], "log_scale": true }
+  },
+  "6": {
+    "class_type": "PreviewImage",
+    "inputs": { "images": ["5", 0] }
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "1": {
+    "class_type": "LoadImage",
+    "inputs": { "image": "portrait.png", "upload": "image" }
+  },
+  "2": {
+    "class_type": "NukeMax_MaterialDecomposerHeuristic",
+    "inputs": {
+      "image": ["1", 0],
+      "albedo_blur_sigma": 8.0,
+      "depth_strength": 0.5
+    }
+  },
+  "3": {
+    "class_type": "NukeMax_LightRigBuilder",
+    "inputs": {
+      "rig_state": "",
+      "key_intensity": 1.0,
+      "fill_intensity": 0.4,
+      "rim_intensity": 0.6,
+      "ambient": 0.05
+    }
+  },
+  "4": {
+    "class_type": "NukeMax_ThreePointRelight",
+    "inputs": {
+      "materials": ["2", 0],
+      "rig": ["3", 0],
+      "fov_deg": 50.0,
+      "tonemap": true
+    }
+  },
+  "5": {
+    "class_type": "PreviewImage",
+    "inputs": { "images": ["4", 0] }
+  }
+}
