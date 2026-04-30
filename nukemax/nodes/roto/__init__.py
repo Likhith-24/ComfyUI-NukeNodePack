@@ -37,18 +37,20 @@ class RotoSplineEditor:
         "canvas": {"h": H, "w": W}
       }
     """
+    DESCRIPTION = "Parse a JSON spline state from the interactive bezier editor into a ROTO_SHAPE on the given canvas."
     CATEGORY = "NukeMax/Roto"
     FUNCTION = "execute"
     RETURN_TYPES = ("ROTO_SHAPE",)
     RETURN_NAMES = ("roto",)
+    OUTPUT_TOOLTIPS = ("Per-frame roto shape (points, handles, feather, canvas).",)
 
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "spline_state": ("STRING", {"multiline": True, "default": "{}"}),
-                "canvas_height": ("INT", {"default": 512, "min": 8, "max": 8192}),
-                "canvas_width": ("INT", {"default": 512, "min": 8, "max": 8192}),
+                "spline_state": ("STRING", {"multiline": True, "default": "{}", "tooltip": "JSON string from the JS bezier editor describing per-frame points, handles, and feather."}),
+                "canvas_height": ("INT", {"default": 512, "min": 8, "max": 8192, "tooltip": "Canvas height in pixels when the JSON does not specify one."}),
+                "canvas_width": ("INT", {"default": 512, "min": 8, "max": 8192, "tooltip": "Canvas width in pixels when the JSON does not specify one."}),
             },
         }
 
@@ -88,14 +90,16 @@ class RotoSplineEditor:
 
 @resilient
 class RotoShapeFromFile:
+    DESCRIPTION = "Load a ROTO_SHAPE from a JSON file on disk using the same schema as the spline editor."
     CATEGORY = "NukeMax/Roto"
     FUNCTION = "execute"
     RETURN_TYPES = ("ROTO_SHAPE",)
     RETURN_NAMES = ("roto",)
+    OUTPUT_TOOLTIPS = ("Roto shape parsed from the JSON file.",)
 
     @classmethod
     def INPUT_TYPES(cls):
-        return {"required": {"path": ("STRING", {"default": ""})}}
+        return {"required": {"path": ("STRING", {"default": "", "tooltip": "Filesystem path to a JSON file containing a roto spline state."})}}
 
     def execute(self, path: str):
         from pathlib import Path
@@ -115,21 +119,23 @@ class RotoShapeToAITracker:
     compute a fast Lucas-Kanade-like estimate per-vertex via local
     cross-correlation (math, not a model).
     """
+    DESCRIPTION = "Propagate a frame-0 roto shape across a frame batch using a flow field or per-vertex NCC tracking."
     CATEGORY = "NukeMax/Roto"
     FUNCTION = "execute"
     RETURN_TYPES = ("ROTO_SHAPE", "TRACKING_DATA")
     RETURN_NAMES = ("roto_animated", "tracks")
+    OUTPUT_TOOLTIPS = ("Roto shape with per-frame propagated points and handles.", "Per-frame tracking data (coords, velocity, confidence) for the vertices.")
 
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "roto": ("ROTO_SHAPE",),
-                "frames": ("IMAGE",),
+                "roto": ("ROTO_SHAPE", {"tooltip": "Source roto shape; only frame 0 is used as the seed."}),
+                "frames": ("IMAGE", {"tooltip": "Image batch to propagate the shape across."}),
             },
             "optional": {
-                "flow": ("FLOW_FIELD",),
-                "search_radius": ("INT", {"default": 8, "min": 1, "max": 64}),
+                "flow": ("FLOW_FIELD", {"tooltip": "Optional precomputed flow field; bypasses NCC search."}),
+                "search_radius": ("INT", {"default": 8, "min": 1, "max": 64, "tooltip": "NCC search window radius in pixels when no flow is provided."}),
             },
         }
 
@@ -250,22 +256,24 @@ class RotoShapeToAITracker:
 
 @resilient
 class RotoShapeRenderer:
+    DESCRIPTION = "Rasterize a ROTO_SHAPE to a per-frame mask with optional flow-driven directional motion blur."
     CATEGORY = "NukeMax/Roto"
     FUNCTION = "execute"
     RETURN_TYPES = ("MASK",)
     RETURN_NAMES = ("mask",)
+    OUTPUT_TOOLTIPS = ("Rasterized per-frame roto mask.",)
 
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "roto": ("ROTO_SHAPE",),
-                "samples_per_segment": ("INT", {"default": 16, "min": 2, "max": 128}),
-                "feather_override": ("FLOAT", {"default": -1.0, "min": -1.0, "max": 256.0, "step": 0.1}),
+                "roto": ("ROTO_SHAPE", {"tooltip": "Roto shape to rasterize."}),
+                "samples_per_segment": ("INT", {"default": 16, "min": 2, "max": 128, "tooltip": "Bezier sampling density per segment when building the polyline."}),
+                "feather_override": ("FLOAT", {"default": -1.0, "min": -1.0, "max": 256.0, "step": 0.1, "tooltip": "Feather radius in pixels; <0 uses the per-vertex feather mean."}),
             },
             "optional": {
-                "flow": ("FLOW_FIELD",),
-                "motion_blur_strength": ("FLOAT", {"default": 0.0, "min": 0.0, "max": 4.0, "step": 0.05}),
+                "flow": ("FLOW_FIELD", {"tooltip": "Optional flow used to drive directional motion blur."}),
+                "motion_blur_strength": ("FLOAT", {"default": 0.0, "min": 0.0, "max": 4.0, "step": 0.05, "tooltip": "Multiplier on flow vectors for the directional blur amount."}),
             },
         }
 
@@ -298,19 +306,21 @@ class RotoShapeToDiffusionGuidance:
     """Dual-output bridge: hard mask, soft inpaint mask, latent-space mask,
     and SAM-style point/box prompts as JSON.
     """
+    DESCRIPTION = "Convert a roto shape into hard, soft, and latent-resolution masks plus SAM-style box+point prompts as JSON."
     CATEGORY = "NukeMax/Roto"
     FUNCTION = "execute"
     RETURN_TYPES = ("MASK", "MASK", "MASK", "STRING")
     RETURN_NAMES = ("mask_hard", "mask_soft", "mask_latent", "sam_prompts_json")
+    OUTPUT_TOOLTIPS = ("Hard binary roto mask at canvas resolution.", "Soft Gaussian-feathered roto mask for inpainting.", "Roto mask downsampled to latent resolution.", "JSON list of per-frame SAM prompts (boxes, points, labels).")
 
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "roto": ("ROTO_SHAPE",),
-                "soft_radius_px": ("FLOAT", {"default": 16.0, "min": 0.0, "max": 256.0}),
-                "latent_downscale": ("INT", {"default": 8, "min": 1, "max": 32}),
-                "samples_per_segment": ("INT", {"default": 16, "min": 2, "max": 128}),
+                "roto": ("ROTO_SHAPE", {"tooltip": "Roto shape to convert into diffusion guidance."}),
+                "soft_radius_px": ("FLOAT", {"default": 16.0, "min": 0.0, "max": 256.0, "tooltip": "Gaussian feather radius in pixels for the soft mask."}),
+                "latent_downscale": ("INT", {"default": 8, "min": 1, "max": 32, "tooltip": "Spatial downscale factor for the latent-resolution mask (e.g. 8 for SD VAE)."}),
+                "samples_per_segment": ("INT", {"default": 16, "min": 2, "max": 128, "tooltip": "Bezier sampling density per segment."}),
             },
         }
 

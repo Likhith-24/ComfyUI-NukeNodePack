@@ -60,18 +60,20 @@ class ComputeOpticalFlow:
     Tries to use OpenCV's Farneback when available (CPU, robust); falls
     back to the pure-PyTorch multi-scale LK above.
     """
+    DESCRIPTION = "Compute forward and backward optical flow plus a forward-backward consistency occlusion mask for an image batch."
     CATEGORY = "NukeMax/Flow"
     FUNCTION = "execute"
     RETURN_TYPES = ("FLOW_FIELD",)
     RETURN_NAMES = ("flow",)
+    OUTPUT_TOOLTIPS = ("Flow field bundle containing forward flow, backward flow, and forward occlusion mask.",)
 
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "frames": ("IMAGE",),
-                "method": (("auto", "torch_lk", "opencv_farneback"),),
-                "consistency_threshold": ("FLOAT", {"default": 1.5, "min": 0.0, "max": 32.0, "step": 0.1}),
+                "frames": ("IMAGE", {"tooltip": "Image batch (sequential frames) to compute optical flow on."}),
+                "method": (("auto", "torch_lk", "opencv_farneback"), {"tooltip": "Flow algorithm: auto picks OpenCV Farneback if available, else torch LK."}),
+                "consistency_threshold": ("FLOAT", {"default": 1.5, "min": 0.0, "max": 32.0, "step": 0.1, "tooltip": "Pixel error threshold for forward-backward consistency check used to flag occlusions."}),
             },
         }
 
@@ -111,18 +113,20 @@ class ComputeOpticalFlow:
 
 @resilient
 class FlowBackwardWarp:
+    DESCRIPTION = "Backward-warp an image batch using a precomputed flow field in either the forward or backward direction."
     CATEGORY = "NukeMax/Flow"
     FUNCTION = "execute"
     RETURN_TYPES = ("IMAGE",)
     RETURN_NAMES = ("warped",)
+    OUTPUT_TOOLTIPS = ("Image batch resampled by the chosen flow direction.",)
 
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "image": ("IMAGE",),
-                "flow": ("FLOW_FIELD",),
-                "direction": (("forward", "backward"),),
+                "image": ("IMAGE", {"tooltip": "Source image batch to warp."}),
+                "flow": ("FLOW_FIELD", {"tooltip": "Flow field bundle from Compute Optical Flow."}),
+                "direction": (("forward", "backward"), {"tooltip": "Which flow vector to use for the backward warp."}),
             },
         }
 
@@ -142,14 +146,16 @@ class FlowBackwardWarp:
 
 @resilient
 class FlowForwardWarp:
+    DESCRIPTION = "Splat-style forward warp of an image batch using the forward flow; also returns the splat weight as a mask."
     CATEGORY = "NukeMax/Flow"
     FUNCTION = "execute"
     RETURN_TYPES = ("IMAGE", "MASK")
     RETURN_NAMES = ("warped", "weight")
+    OUTPUT_TOOLTIPS = ("Forward-warped image, normalized by accumulated splat weight.", "Per-pixel splat coverage (0=no contribution, 1=full).")
 
     @classmethod
     def INPUT_TYPES(cls):
-        return {"required": {"image": ("IMAGE",), "flow": ("FLOW_FIELD",)}}
+        return {"required": {"image": ("IMAGE", {"tooltip": "Source image batch to splat-forward."}), "flow": ("FLOW_FIELD", {"tooltip": "Flow field bundle from Compute Optical Flow."})}}
 
     def execute(self, image, flow):
         x = to_bchw(image)
@@ -166,14 +172,16 @@ class FlowForwardWarp:
 
 @resilient
 class FlowOcclusionMask:
+    DESCRIPTION = "Extract the occlusion mask from a flow bundle, computing it from forward-backward consistency if missing."
     CATEGORY = "NukeMax/Flow"
     FUNCTION = "execute"
     RETURN_TYPES = ("MASK",)
     RETURN_NAMES = ("occlusion",)
+    OUTPUT_TOOLTIPS = ("Per-pixel forward-flow occlusion mask (1=occluded/inconsistent).",)
 
     @classmethod
     def INPUT_TYPES(cls):
-        return {"required": {"flow": ("FLOW_FIELD",)}}
+        return {"required": {"flow": ("FLOW_FIELD", {"tooltip": "Flow field bundle from Compute Optical Flow."})}}
 
     def execute(self, flow):
         if flow.occlusion_fwd is None:
@@ -188,20 +196,22 @@ class CleanPlateMerge:
     """Warp a clean plate along the flow under a moving object mask, then
     merge to remove the object. Output: clean composite IMAGE.
     """
+    DESCRIPTION = "Warp a clean plate along the flow chain and merge it under the object mask to remove a moving object from footage."
     CATEGORY = "NukeMax/Flow"
     FUNCTION = "execute"
     RETURN_TYPES = ("IMAGE",)
     RETURN_NAMES = ("image",)
+    OUTPUT_TOOLTIPS = ("Clean composite with the masked object replaced by the warped plate.",)
 
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "footage": ("IMAGE",),
-                "clean_plate": ("IMAGE",),
-                "object_mask": ("MASK",),
-                "flow": ("FLOW_FIELD",),
-                "feather_px": ("FLOAT", {"default": 4.0, "min": 0.0, "max": 64.0}),
+                "footage": ("IMAGE", {"tooltip": "Original footage batch containing the unwanted object."}),
+                "clean_plate": ("IMAGE", {"tooltip": "Clean reference plate (single frame or batch) to warp into the hole."}),
+                "object_mask": ("MASK", {"tooltip": "Mask covering the object to remove (1=replace with plate)."}),
+                "flow": ("FLOW_FIELD", {"tooltip": "Flow field bundle used to align the plate to each frame."}),
+                "feather_px": ("FLOAT", {"default": 4.0, "min": 0.0, "max": 64.0, "tooltip": "Gaussian feather radius in pixels applied to the object mask edge."}),
             },
         }
 
@@ -227,14 +237,16 @@ class CleanPlateMerge:
 @resilient
 class FlowVisualize:
     """Render a Middlebury-color visualization of forward flow."""
+    DESCRIPTION = "Render a Middlebury-style HSV color visualization of the forward flow vectors."
     CATEGORY = "NukeMax/Flow"
     FUNCTION = "execute"
     RETURN_TYPES = ("IMAGE",)
     RETURN_NAMES = ("image",)
+    OUTPUT_TOOLTIPS = ("RGB image visualizing flow direction (hue) and magnitude (saturation).",)
 
     @classmethod
     def INPUT_TYPES(cls):
-        return {"required": {"flow": ("FLOW_FIELD",), "max_magnitude": ("FLOAT", {"default": 32.0, "min": 0.5, "max": 1024.0})}}
+        return {"required": {"flow": ("FLOW_FIELD", {"tooltip": "Flow field bundle from Compute Optical Flow."}), "max_magnitude": ("FLOAT", {"default": 32.0, "min": 0.5, "max": 1024.0, "tooltip": "Pixel magnitude that maps to full saturation in the visualization."})}}
 
     def execute(self, flow, max_magnitude):
         f = flow.flow_fwd

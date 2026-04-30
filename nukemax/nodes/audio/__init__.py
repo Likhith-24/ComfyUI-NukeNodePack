@@ -93,18 +93,20 @@ def _spectral_centroid(stft_mag: torch.Tensor, sr: int, n_fft: int) -> torch.Ten
 
 @resilient
 class AudioLoadAnalyze:
+    DESCRIPTION = "Load an audio file and compute STFT magnitude, onset envelope, BPM, spectral centroid and RMS as AUDIO_FEATURES."
     CATEGORY = "NukeMax/Audio"
     FUNCTION = "execute"
     RETURN_TYPES = ("AUDIO_FEATURES", "FLOAT", "STRING")
     RETURN_NAMES = ("audio", "bpm", "info")
+    OUTPUT_TOOLTIPS = ("Bundle of audio features (waveform, STFT, onsets, centroid, RMS).", "Estimated tempo in beats per minute.", "Human-readable summary string.")
 
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "path": ("STRING", {"default": ""}),
-                "n_fft": ("INT", {"default": 2048, "min": 256, "max": 16384}),
-                "hop_length": ("INT", {"default": 512, "min": 64, "max": 4096}),
+                "path": ("STRING", {"default": "", "tooltip": "Filesystem path to the audio file (wav/flac/mp3 if librosa is available)."}),
+                "n_fft": ("INT", {"default": 2048, "min": 256, "max": 16384, "tooltip": "FFT window size used for the STFT."}),
+                "hop_length": ("INT", {"default": 512, "min": 64, "max": 4096, "tooltip": "STFT hop length in samples."}),
             },
         }
 
@@ -137,21 +139,23 @@ def _resample_curve(curve: torch.Tensor, n_target: int) -> torch.Tensor:
 
 @resilient
 class AudioToFloatCurve:
+    DESCRIPTION = "Convert an audio feature band (bass/mid/treble/onsets/centroid/full) into a per-frame float curve and 1D viz mask."
     CATEGORY = "NukeMax/Audio"
     FUNCTION = "execute"
     RETURN_TYPES = ("FLOAT", "MASK")
     RETURN_NAMES = ("curve", "curve_image_1d")
+    OUTPUT_TOOLTIPS = ("Per-frame float curve normalized to [0,1].", "1D mask visualization of the curve over time.")
 
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "audio": ("AUDIO_FEATURES",),
-                "frame_count": ("INT", {"default": 60, "min": 1, "max": 100000}),
-                "fps": ("FLOAT", {"default": 30.0, "min": 1.0, "max": 240.0}),
-                "band": (("full", "bass", "mid", "treble", "onsets", "centroid"),),
-                "smoothing": ("FLOAT", {"default": 0.0, "min": 0.0, "max": 1.0, "step": 0.01}),
-                "gain": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 32.0}),
+                "audio": ("AUDIO_FEATURES", {"tooltip": "Audio feature bundle from Audio Load & Analyze."}),
+                "frame_count": ("INT", {"default": 60, "min": 1, "max": 100000, "tooltip": "Length of the output curve in frames."}),
+                "fps": ("FLOAT", {"default": 30.0, "min": 1.0, "max": 240.0, "tooltip": "Target frames-per-second for time-aligning the curve."}),
+                "band": (("full", "bass", "mid", "treble", "onsets", "centroid"), {"tooltip": "Which audio feature band to extract the curve from."}),
+                "smoothing": ("FLOAT", {"default": 0.0, "min": 0.0, "max": 1.0, "step": 0.01, "tooltip": "Temporal Gaussian smoothing of the curve (0=none)."}),
+                "gain": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 32.0, "tooltip": "Multiplier applied to the curve before clamping."}),
             },
         }
 
@@ -197,19 +201,21 @@ class AudioToFloatCurve:
 @resilient
 class AudioDriveMask:
     """Modulate a per-frame mask's intensity / dilation by the curve."""
+    DESCRIPTION = "Modulate a per-frame mask by an audio-driven float curve via intensity scaling, dilation, or feathering."
     CATEGORY = "NukeMax/Audio"
     FUNCTION = "execute"
     RETURN_TYPES = ("MASK",)
     RETURN_NAMES = ("mask",)
+    OUTPUT_TOOLTIPS = ("Mask modulated frame-by-frame by the curve.",)
 
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "mask": ("MASK",),
-                "curve": ("FLOAT", {"forceInput": True}),
-                "mode": (("intensity", "dilate", "feather"),),
-                "amount": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 32.0}),
+                "mask": ("MASK", {"tooltip": "Per-frame mask batch to modulate."}),
+                "curve": ("FLOAT", {"forceInput": True, "tooltip": "Per-frame float curve (e.g. from Audio To Float Curve)."}),
+                "mode": (("intensity", "dilate", "feather"), {"tooltip": "How the curve modulates the mask: brightness, morphological dilation, or Gaussian feather."}),
+                "amount": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 32.0, "tooltip": "Strength of the modulation."}),
             },
         }
 
@@ -247,18 +253,20 @@ class AudioDriveSchedule:
     """Convert an audio curve to a per-frame schedule list usable by
     samplers that accept a CFG/denoise schedule. Output: STRING JSON.
     """
+    DESCRIPTION = "Map an audio float curve to a per-frame value schedule (e.g. CFG/denoise) and emit it as JSON plus the scaled curve."
     CATEGORY = "NukeMax/Audio"
     FUNCTION = "execute"
     RETURN_TYPES = ("STRING", "FLOAT")
     RETURN_NAMES = ("schedule_json", "curve")
+    OUTPUT_TOOLTIPS = ("JSON-encoded list of per-frame schedule values.", "Per-frame schedule values as a float list.")
 
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "curve": ("FLOAT", {"forceInput": True}),
-                "min_value": ("FLOAT", {"default": 4.0, "min": 0.0, "max": 100.0}),
-                "max_value": ("FLOAT", {"default": 12.0, "min": 0.0, "max": 100.0}),
+                "curve": ("FLOAT", {"forceInput": True, "tooltip": "Per-frame float curve to remap."}),
+                "min_value": ("FLOAT", {"default": 4.0, "min": 0.0, "max": 100.0, "tooltip": "Schedule value when the curve is at 0."}),
+                "max_value": ("FLOAT", {"default": 12.0, "min": 0.0, "max": 100.0, "tooltip": "Schedule value when the curve is at 1."}),
             },
         }
 
@@ -271,17 +279,19 @@ class AudioDriveSchedule:
 
 @resilient
 class AudioSpectrogram:
+    DESCRIPTION = "Render an STFT magnitude spectrogram from AUDIO_FEATURES as an RGB image, optionally on a log magnitude scale."
     CATEGORY = "NukeMax/Audio"
     FUNCTION = "execute"
     RETURN_TYPES = ("IMAGE",)
     RETURN_NAMES = ("spectrogram",)
+    OUTPUT_TOOLTIPS = ("Greyscale RGB spectrogram image (frequency on Y, time on X).",)
 
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "audio": ("AUDIO_FEATURES",),
-                "log_scale": ("BOOLEAN", {"default": True}),
+                "audio": ("AUDIO_FEATURES", {"tooltip": "Audio feature bundle to visualize."}),
+                "log_scale": ("BOOLEAN", {"default": True, "tooltip": "If true, display log10 magnitude; otherwise linear magnitude."}),
             },
         }
 

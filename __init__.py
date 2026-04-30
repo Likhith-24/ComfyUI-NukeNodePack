@@ -22,6 +22,14 @@ _ECOSYSTEMS = (
     ".nukemax.nodes.audio",
     ".nukemax.nodes.flow",
     ".nukemax.nodes.edges",
+    # Migrated from ComfyUI-CustomNodePacks (Apr 2026)
+    ".nukemax.nodes.utils",
+    ".nukemax.nodes.io",
+    ".nukemax.nodes.passes",
+    ".nukemax.nodes.plate",
+    ".nukemax.nodes.geometry_ext",
+    ".nukemax.nodes.metadata",
+    ".nukemax.nodes.color",
 )
 
 for mod_name in _ECOSYSTEMS:

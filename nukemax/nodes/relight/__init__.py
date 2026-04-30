@@ -31,18 +31,20 @@ class MaterialDecomposerHeuristic:
     normal = gradient of luminance lifted to z, depth = inverse luminance.
     Useful for demos and for testing the relight math without ML models.
     """
+    DESCRIPTION = "Heuristic albedo/normal/depth/roughness decomposition from a single image, using local-mean albedo and luminance gradients."
     CATEGORY = "NukeMax/Relight"
     FUNCTION = "execute"
     RETURN_TYPES = ("MATERIAL_SET",)
     RETURN_NAMES = ("materials",)
+    OUTPUT_TOOLTIPS = ("Material set bundle (albedo, normal, depth, roughness).",)
 
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "image": ("IMAGE",),
-                "albedo_blur_sigma": ("FLOAT", {"default": 8.0, "min": 0.5, "max": 64.0}),
-                "depth_strength": ("FLOAT", {"default": 0.5, "min": 0.0, "max": 4.0}),
+                "image": ("IMAGE", {"tooltip": "Input image to decompose into materials."}),
+                "albedo_blur_sigma": ("FLOAT", {"default": 8.0, "min": 0.5, "max": 64.0, "tooltip": "Gaussian sigma in pixels used to estimate albedo as a local mean."}),
+                "depth_strength": ("FLOAT", {"default": 0.5, "min": 0.0, "max": 4.0, "tooltip": "Strength of luminance-gradient lift used to fake the normal map."}),
             },
         }
 
@@ -69,18 +71,20 @@ class MaterialDecomposerModels:
     loads them lazily; otherwise it falls back to the heuristic
     decomposer with an `info` warning.
     """
+    DESCRIPTION = "Model-backed material decomposition (Marigold/StableNormal); falls back to heuristic decomposer if weights are unavailable."
     CATEGORY = "NukeMax/Relight"
     FUNCTION = "execute"
     RETURN_TYPES = ("MATERIAL_SET", "STRING")
     RETURN_NAMES = ("materials", "info")
+    OUTPUT_TOOLTIPS = ("Material set bundle (albedo, normal, depth, roughness).", "Status message describing which backend was used.")
 
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "image": ("IMAGE",),
-                "depth_model": ("STRING", {"default": "marigold"}),
-                "normal_model": ("STRING", {"default": "stable_normal"}),
+                "image": ("IMAGE", {"tooltip": "Input image to decompose."}),
+                "depth_model": ("STRING", {"default": "marigold", "tooltip": "Identifier of the depth model to use if available."}),
+                "normal_model": ("STRING", {"default": "stable_normal", "tooltip": "Identifier of the normal model to use if available."}),
             },
         }
 
@@ -99,20 +103,22 @@ class LightRigBuilder:
     """Build a LIGHT_RIG from key/fill/rim parameters. The JS widget
     posts a JSON state into `rig_state`.
     """
+    DESCRIPTION = "Build a LIGHT_RIG from a JSON state or key/fill/rim parameters with a global ambient term."
     CATEGORY = "NukeMax/Relight"
     FUNCTION = "execute"
     RETURN_TYPES = ("LIGHT_RIG",)
     RETURN_NAMES = ("rig",)
+    OUTPUT_TOOLTIPS = ("Light rig bundle (lights tuple plus ambient color).",)
 
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "rig_state": ("STRING", {"multiline": True, "default": ""}),
-                "key_intensity": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 10.0}),
-                "fill_intensity": ("FLOAT", {"default": 0.4, "min": 0.0, "max": 10.0}),
-                "rim_intensity": ("FLOAT", {"default": 0.6, "min": 0.0, "max": 10.0}),
-                "ambient": ("FLOAT", {"default": 0.05, "min": 0.0, "max": 1.0}),
+                "rig_state": ("STRING", {"multiline": True, "default": "", "tooltip": "Optional JSON string describing lights and ambient; overrides the simple sliders."}),
+                "key_intensity": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 10.0, "tooltip": "Intensity of the key light when no JSON state is provided."}),
+                "fill_intensity": ("FLOAT", {"default": 0.4, "min": 0.0, "max": 10.0, "tooltip": "Intensity of the fill light when no JSON state is provided."}),
+                "rim_intensity": ("FLOAT", {"default": 0.6, "min": 0.0, "max": 10.0, "tooltip": "Intensity of the rim/back light when no JSON state is provided."}),
+                "ambient": ("FLOAT", {"default": 0.05, "min": 0.0, "max": 1.0, "tooltip": "Greyscale ambient term added to all surfaces."}),
             },
         }
 
@@ -148,19 +154,21 @@ class LightRigBuilder:
 
 @resilient
 class ThreePointRelight:
+    DESCRIPTION = "Relight a MATERIAL_SET with a LIGHT_RIG using a Lambert+Phong shader and optional Reinhard tonemap."
     CATEGORY = "NukeMax/Relight"
     FUNCTION = "execute"
     RETURN_TYPES = ("IMAGE",)
     RETURN_NAMES = ("image",)
+    OUTPUT_TOOLTIPS = ("Relit sRGB image of the materials under the rig.",)
 
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "materials": ("MATERIAL_SET",),
-                "rig": ("LIGHT_RIG",),
-                "fov_deg": ("FLOAT", {"default": 50.0, "min": 5.0, "max": 170.0}),
-                "tonemap": ("BOOLEAN", {"default": True}),
+                "materials": ("MATERIAL_SET", {"tooltip": "Albedo/normal/depth/roughness bundle."}),
+                "rig": ("LIGHT_RIG", {"tooltip": "Light rig describing the lights and ambient."}),
+                "fov_deg": ("FLOAT", {"default": 50.0, "min": 5.0, "max": 170.0, "tooltip": "Camera vertical field-of-view in degrees used to reconstruct view rays."}),
+                "tonemap": ("BOOLEAN", {"default": True, "tooltip": "Apply a Reinhard tonemap before returning sRGB."}),
             },
         }
 
@@ -182,19 +190,21 @@ class LightProbeEstimator:
     incoming radiance, then bin by world-space normal direction onto an
     equirectangular environment map.
     """
+    DESCRIPTION = "Estimate an HDR equirectangular light probe by dividing the image by albedo and binning radiance by surface normal."
     CATEGORY = "NukeMax/Relight"
     FUNCTION = "execute"
     RETURN_TYPES = ("LIGHT_PROBE",)
     RETURN_NAMES = ("probe",)
+    OUTPUT_TOOLTIPS = ("Equirectangular HDR light probe bundle.",)
 
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "image": ("IMAGE",),
-                "materials": ("MATERIAL_SET",),
-                "probe_height": ("INT", {"default": 256, "min": 32, "max": 4096}),
-                "probe_width": ("INT", {"default": 512, "min": 32, "max": 8192}),
+                "image": ("IMAGE", {"tooltip": "Source image (sRGB) to extract incoming radiance from."}),
+                "materials": ("MATERIAL_SET", {"tooltip": "Material set providing albedo and normal for the same image."}),
+                "probe_height": ("INT", {"default": 256, "min": 32, "max": 4096, "tooltip": "Height of the output equirect probe in pixels."}),
+                "probe_width": ("INT", {"default": 512, "min": 32, "max": 8192, "tooltip": "Width of the output equirect probe in pixels."}),
             },
         }
 
@@ -234,19 +244,21 @@ class LightProbeToEXR:
     to a Radiance .hdr if OpenEXR isn't installed) so the user can
     match lighting in Blender/Nuke.
     """
+    DESCRIPTION = "Write a LIGHT_PROBE to a 32-bit float EXR file (or .npy fallback) for use in external DCC apps."
     CATEGORY = "NukeMax/Relight"
     FUNCTION = "execute"
     RETURN_TYPES = ("STRING",)
     RETURN_NAMES = ("path",)
+    OUTPUT_TOOLTIPS = ("Filesystem path of the written probe file (forward slashes).",)
     OUTPUT_NODE = True
 
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "probe": ("LIGHT_PROBE",),
-                "out_dir": ("STRING", {"default": "output"}),
-                "filename": ("STRING", {"default": "probe.exr"}),
+                "probe": ("LIGHT_PROBE", {"tooltip": "Light probe to write to disk."}),
+                "out_dir": ("STRING", {"default": "output", "tooltip": "Output directory (created if missing)."}),
+                "filename": ("STRING", {"default": "probe.exr", "tooltip": "Output file name; .exr if OpenEXR is available."}),
             },
         }
 

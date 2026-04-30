@@ -28,19 +28,21 @@ class NormalAwareEdgeBlur:
     along each tap. Keeps hair/fur fine detail intact while still
     smoothing within a single surface.
     """
+    DESCRIPTION = "Cross-bilateral mask blur gated by a normal map; smooths within surfaces while preserving normal discontinuities."
     CATEGORY = "NukeMax/Edges"
     FUNCTION = "execute"
     RETURN_TYPES = ("MASK",)
     RETURN_NAMES = ("mask",)
+    OUTPUT_TOOLTIPS = ("Mask blurred only across surfaces with similar normals.",)
 
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "mask": ("MASK",),
-                "normal": ("IMAGE",),
-                "sigma": ("FLOAT", {"default": 4.0, "min": 0.0, "max": 64.0, "step": 0.1}),
-                "normal_threshold": ("FLOAT", {"default": 0.85, "min": -1.0, "max": 1.0, "step": 0.01}),
+                "mask": ("MASK", {"tooltip": "Mask to blur."}),
+                "normal": ("IMAGE", {"tooltip": "Normal map (0..1 RGB) used to gate the bilateral kernel."}),
+                "sigma": ("FLOAT", {"default": 4.0, "min": 0.0, "max": 64.0, "step": 0.1, "tooltip": "Gaussian standard deviation in pixels."}),
+                "normal_threshold": ("FLOAT", {"default": 0.85, "min": -1.0, "max": 1.0, "step": 0.01, "tooltip": "Minimum cosine similarity between normals for samples to contribute."}),
             },
         }
 
@@ -89,20 +91,22 @@ class MatteDensityAdjust:
     Fully-opaque (alpha == 1) and fully-transparent (alpha == 0) regions
     are returned bit-exact.
     """
+    DESCRIPTION = "Adjust gamma and contrast only on the semi-transparent edge band of a matte; opaque and clear regions are preserved exactly."
     CATEGORY = "NukeMax/Edges"
     FUNCTION = "execute"
     RETURN_TYPES = ("MASK",)
     RETURN_NAMES = ("mask",)
+    OUTPUT_TOOLTIPS = ("Mask with adjusted edge density.",)
 
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "mask": ("MASK",),
-                "gamma": ("FLOAT", {"default": 1.0, "min": 0.05, "max": 8.0, "step": 0.01}),
-                "contrast": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 8.0, "step": 0.01}),
-                "edge_lo": ("FLOAT", {"default": 0.01, "min": 0.0, "max": 0.5}),
-                "edge_hi": ("FLOAT", {"default": 0.99, "min": 0.5, "max": 1.0}),
+                "mask": ("MASK", {"tooltip": "Input matte to adjust."}),
+                "gamma": ("FLOAT", {"default": 1.0, "min": 0.05, "max": 8.0, "step": 0.01, "tooltip": "Gamma applied to the edge band; <1 darkens, >1 brightens."}),
+                "contrast": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 8.0, "step": 0.01, "tooltip": "Contrast multiplier around 0.5 for the edge band."}),
+                "edge_lo": ("FLOAT", {"default": 0.01, "min": 0.0, "max": 0.5, "tooltip": "Lower alpha bound that defines the edge band."}),
+                "edge_hi": ("FLOAT", {"default": 0.99, "min": 0.5, "max": 1.0, "tooltip": "Upper alpha bound that defines the edge band."}),
             },
         }
 
@@ -123,17 +127,19 @@ class SubPixelEdgeDetect:
     Outputs a MASK of edge magnitudes plus TRACKING_DATA of the K
     strongest edge points per frame for downstream tracking.
     """
+    DESCRIPTION = "Sobel edge detector with sub-pixel localization; emits an edge magnitude mask and the top-K edge points as tracking data."
     CATEGORY = "NukeMax/Edges"
     FUNCTION = "execute"
     RETURN_TYPES = ("MASK", "TRACKING_DATA")
     RETURN_NAMES = ("edges", "tracks")
+    OUTPUT_TOOLTIPS = ("Per-pixel edge magnitude normalized to [0,1].", "Top-K edge point coordinates with confidence per frame.")
 
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "image": ("IMAGE",),
-                "top_k": ("INT", {"default": 256, "min": 1, "max": 4096}),
+                "image": ("IMAGE", {"tooltip": "Image batch to detect edges on."}),
+                "top_k": ("INT", {"default": 256, "min": 1, "max": 4096, "tooltip": "Number of strongest edge points kept per frame as tracks."}),
             },
         }
 
@@ -167,19 +173,21 @@ class HairAwareChoke:
     """Choke a matte using local high-frequency energy as a proxy for
     'hair'. Hair regions get less choke; smooth regions get more.
     """
+    DESCRIPTION = "Choke a matte adaptively, applying less choke in high-frequency 'hair' regions and more in smooth regions."
     CATEGORY = "NukeMax/Edges"
     FUNCTION = "execute"
     RETURN_TYPES = ("MASK",)
     RETURN_NAMES = ("mask",)
+    OUTPUT_TOOLTIPS = ("Hair-aware choked mask.",)
 
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "mask": ("MASK",),
-                "image": ("IMAGE",),
-                "choke": ("FLOAT", {"default": 1.5, "min": -8.0, "max": 8.0, "step": 0.1}),
-                "hair_window": ("INT", {"default": 5, "min": 1, "max": 31}),
+                "mask": ("MASK", {"tooltip": "Input matte to choke."}),
+                "image": ("IMAGE", {"tooltip": "Companion image used to estimate hair-frequency energy."}),
+                "choke": ("FLOAT", {"default": 1.5, "min": -8.0, "max": 8.0, "step": 0.1, "tooltip": "Choke amount; positive erodes, negative dilates, 0 is no-op."}),
+                "hair_window": ("INT", {"default": 5, "min": 1, "max": 31, "tooltip": "Window size in pixels for the local std-dev hair detector."}),
             },
         }
 
