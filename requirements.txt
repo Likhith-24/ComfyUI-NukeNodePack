@@ -2,3 +2,6 @@ torch>=2.0
 numpy>=1.24
 librosa>=0.10
 soundfile>=0.12
+# EXR I/O (LoadEXRMEC / SaveEXRMEC). OpenEXR is preferred when available;
+# imageio is the cross-platform fallback.
+imageio>=2.31
