@@ -1,6 +1,6 @@
 # NOTICE — ComfyUI-NukeMaxNodes
 
-Copyright (c) 2025-2026 Likhith-24  
+Copyright (c) 2025-2026 Code2Collapse  
 License: Apache License 2.0 (see LICENSE)
 
 ---

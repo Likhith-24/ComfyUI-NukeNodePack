@@ -9,7 +9,7 @@ description = "Hybrid VFX/AI bridge nodes for ComfyUI: roto, FFT-guided gen, PBR
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
-authors = [{ name = "Likhith-24" }]
+authors = [{ name = "Code2Collapse" }]
 dependencies = [
     "torch>=2.0",
     "numpy>=1.24",
@@ -18,11 +18,11 @@ dependencies = [
 ]
 
 [project.urls]
-Repository = "https://github.com/Likhith-24/ComfyUI-NukeNodePack"
-Issues = "https://github.com/Likhith-24/ComfyUI-NukeNodePack/issues"
+Repository = "https://github.com/Code2Collapse/ComfyUI-NukeNodePack"
+Issues = "https://github.com/Code2Collapse/ComfyUI-NukeNodePack/issues"
 
 [tool.comfy]
-PublisherId = "likhith-24"
+PublisherId = "Code2Collapse"
 DisplayName = "NukeMax Nodes"
 Icon = "https://i.pinimg.com/736x/5d/52/19/5d5219ef27c1530bea027ff95d352e05.jpg"
 
