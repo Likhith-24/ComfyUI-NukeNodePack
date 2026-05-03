@@ -1,5 +1,10 @@
 # ComfyUI-NukeMaxNodes
 
+> **Trademark Notice**: "Nuke" is a registered trademark of **The Foundry Visionmongers Ltd**.
+> This project is an independent open-source ComfyUI node pack and is **not affiliated with,
+> endorsed by, or associated with The Foundry or its Nuke software** in any way.
+> No Foundry code or proprietary assets are used. See [NOTICE.md](NOTICE.md).
+
 Hybrid VFX × AI bridge nodes for ComfyUI. ~50 nodes across 13 file-grouped categories — every traditional VFX operation also exposes an AI-consumable side output (SAM prompts, latent guidance, conditioning curves, EXR metadata) so you can bridge a Nuke/Blender-style compositing flow into a Flux / Qwen-Image / Wan / Z-Image graph without round-tripping to disk.
 
 Foundation: strict custom datatypes (`ROTO_SHAPE`, `FFT_DATA`, `MATERIAL_PBR`, `LIGHT_PROBE`, `AUDIO_TENSOR`, `FLOW_VECTOR`, `EDGE_MAP`, `MEC_RENDER_PASSES`, …), vectorized PyTorch math (BCHW with batch dim = time), per-batch temporal execution, and an optional JS web-extension layer (`web/`) for interactive editors.
