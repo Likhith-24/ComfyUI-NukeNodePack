@@ -1,4 +1,5 @@
 """
+from ... import _interrupt_check as _IC
 Plate-tools nodes (MEC):
   - GrainMatchMEC: Extract grain spectrum from a reference plate and re-apply
     it to a clean image so synthetic content matches the source plate.
@@ -179,6 +180,7 @@ class PlateStabilizerMEC:
         out = [images[0]]
         shifts = []
         for i in range(1, images.shape[0]):
+            _IC.check()
             cur = _luma(images[i])
             dy, dx = _phase_correlate_shift(ref, cur)
             out.append(_warp_translate(images[i], dy, dx))
@@ -195,6 +197,7 @@ class PlateStabilizerMEC:
         out = [images[0]]
         records = []
         for i in range(1, images.shape[0]):
+            _IC.check()
             cur_np = (images[i].cpu().numpy() * 255.0).clip(0, 255).astype("uint8")
             cur_gray = cv2.cvtColor(cur_np, cv2.COLOR_RGB2GRAY)
             kp2, des2 = orb.detectAndCompute(cur_gray, None)

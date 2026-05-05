@@ -11,6 +11,7 @@ from ...types import AudioFeatures
 from ...utils.resilience import resilient
 
 
+from ... import _interrupt_check as _IC
 def _load_audio(path: str) -> tuple[torch.Tensor, int]:
     p = Path(path)
     try:
@@ -233,6 +234,7 @@ class AudioDriveMask:
             # Force odd kernels so output spatial size matches input.
             out = m.clone()
             for t in range(T):
+                _IC.check()
                 k = max(1, int(round(float(c_t[t]) * amount * 8)))
                 if k % 2 == 0:
                     k += 1
@@ -242,6 +244,7 @@ class AudioDriveMask:
             from ...core import blur as nblur
             out = m.clone()
             for t in range(T):
+                _IC.check()
                 sigma = float(c_t[t]) * amount * 4
                 if sigma > 0.01:
                     out[t:t + 1] = nblur.gaussian_blur(m[t:t + 1], sigma)

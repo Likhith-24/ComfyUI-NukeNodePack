@@ -1,4 +1,5 @@
 """
+from ... import _interrupt_check as _IC
 EXR I/O nodes (MEC):
   - LoadEXRMEC: Load an EXR file as IMAGE [B,H,W,3] in scene-linear.
   - SaveEXRMEC: Save IMAGE as EXR (16-bit half by default).
@@ -180,6 +181,7 @@ class SaveEXRMEC:
         if not ext:
             ext = ".exr"
         for i in range(B):
+            _IC.check()
             out_path = file_path if B == 1 else f"{stem}_{i + 1:04d}{ext}"
             rgb = image[i].cpu().numpy().astype(np.float32)
             # MANUAL bug-fix (Apr 2026): give a clear ImportError if neither
