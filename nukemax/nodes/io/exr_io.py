@@ -23,6 +23,7 @@ from typing import Any
 import numpy as np
 import torch
 
+from ... import _progress as _PB
 logger = logging.getLogger("MEC.EXRIO")
 
 
@@ -180,7 +181,7 @@ class SaveEXRMEC:
         stem, ext = os.path.splitext(file_path)
         if not ext:
             ext = ".exr"
-        for i in range(B):
+        for i in _PB.track(range(B), B, "EXR_IO"):
             _IC.check()
             out_path = file_path if B == 1 else f"{stem}_{i + 1:04d}{ext}"
             rgb = image[i].cpu().numpy().astype(np.float32)

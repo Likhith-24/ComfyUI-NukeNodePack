@@ -19,6 +19,7 @@ import logging
 
 import torch
 
+from ... import _progress as _PB
 logger = logging.getLogger("MEC.PlateTools")
 
 
@@ -179,7 +180,7 @@ class PlateStabilizerMEC:
         ref = _luma(images[0])
         out = [images[0]]
         shifts = []
-        for i in range(1, images.shape[0]):
+        for i in _PB.track(range(1, images.shape[0]), None, "PlateTools"):
             _IC.check()
             cur = _luma(images[i])
             dy, dx = _phase_correlate_shift(ref, cur)
@@ -196,7 +197,7 @@ class PlateStabilizerMEC:
         bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
         out = [images[0]]
         records = []
-        for i in range(1, images.shape[0]):
+        for i in _PB.track(range(1, images.shape[0]), None, "PlateTools"):
             _IC.check()
             cur_np = (images[i].cpu().numpy() * 255.0).clip(0, 255).astype("uint8")
             cur_gray = cv2.cvtColor(cur_np, cv2.COLOR_RGB2GRAY)
@@ -268,7 +269,7 @@ class CleanPlateExtractorMEC:
         # take the masked median by replacing invalid samples with the per-pixel
         # mean of valid ones (cheap and stable).
         out = images.clone()
-        for c in range(images.shape[-1]):
+        for c in _PB.track(range(images.shape[-1]), images.shape[-1], "PlateTools"):
             vals = images[..., c]  # [B,H,W]
             mask = valid[..., 0]
             # Replace invalid with first-valid per pixel

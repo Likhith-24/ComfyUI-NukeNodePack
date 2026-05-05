@@ -12,6 +12,7 @@ from ...utils.resilience import resilient
 
 
 from ... import _interrupt_check as _IC
+from ... import _progress as _PB
 def _load_audio(path: str) -> tuple[torch.Tensor, int]:
     p = Path(path)
     try:
@@ -233,7 +234,7 @@ class AudioDriveMask:
             # Dilate by morphological max with a kernel size driven per-frame.
             # Force odd kernels so output spatial size matches input.
             out = m.clone()
-            for t in range(T):
+            for t in _PB.track(range(T), T, "Audio"):
                 _IC.check()
                 k = max(1, int(round(float(c_t[t]) * amount * 8)))
                 if k % 2 == 0:
@@ -243,7 +244,7 @@ class AudioDriveMask:
         else:  # feather
             from ...core import blur as nblur
             out = m.clone()
-            for t in range(T):
+            for t in _PB.track(range(T), T, "Audio"):
                 _IC.check()
                 sigma = float(c_t[t]) * amount * 4
                 if sigma > 0.01:
