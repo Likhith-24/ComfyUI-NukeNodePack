@@ -1,0 +1,361 @@
+{
+  "last_node_id": 7,
+  "last_link_id": 7,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "LoadEXRMEC",
+      "pos": [
+        40,
+        40
+      ],
+      "size": [
+        320,
+        130
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "properties": {
+        "Node name for S&R": "LoadEXRMEC"
+      },
+      "title": "Load Plate EXR",
+      "widgets_values": [
+        "plate.exr"
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            1,
+            2
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "metadata",
+          "type": "METADATA",
+          "links": [],
+          "slot_index": 1
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "LoadImage",
+      "pos": [
+        40,
+        220
+      ],
+      "size": [
+        320,
+        130
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "title": "Load CG Render",
+      "widgets_values": [
+        "cg_render.png",
+        "image"
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            6
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": [],
+          "slot_index": 1
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "NukeMax_ComputeOpticalFlow",
+      "pos": [
+        440,
+        40
+      ],
+      "size": [
+        320,
+        130
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "properties": {
+        "Node name for S&R": "NukeMax_ComputeOpticalFlow"
+      },
+      "title": "Optical Flow",
+      "widgets_values": [
+        "raft",
+        20
+      ],
+      "outputs": [
+        {
+          "name": "flow",
+          "type": "FLOW_FIELD",
+          "links": [
+            3
+          ],
+          "slot_index": 0
+        }
+      ],
+      "inputs": [
+        {
+          "name": "frames",
+          "type": "IMAGE",
+          "link": 1
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "CleanPlateExtractorMEC",
+      "pos": [
+        840,
+        40
+      ],
+      "size": [
+        320,
+        130
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "properties": {
+        "Node name for S&R": "CleanPlateExtractorMEC"
+      },
+      "title": "Clean Plate",
+      "widgets_values": [
+        0.05,
+        16,
+        "median"
+      ],
+      "outputs": [
+        {
+          "name": "clean_plate",
+          "type": "IMAGE",
+          "links": [
+            4
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "mask",
+          "type": "MASK",
+          "links": [],
+          "slot_index": 1
+        }
+      ],
+      "inputs": [
+        {
+          "name": "plate",
+          "type": "IMAGE",
+          "link": 2
+        },
+        {
+          "name": "flow",
+          "type": "FLOW_FIELD",
+          "link": 3
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "PlateStabilizerMEC",
+      "pos": [
+        840,
+        220
+      ],
+      "size": [
+        320,
+        130
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "properties": {
+        "Node name for S&R": "PlateStabilizerMEC"
+      },
+      "title": "Plate Stabilizer",
+      "widgets_values": [
+        "similarity",
+        0.85,
+        0.5,
+        true
+      ],
+      "outputs": [
+        {
+          "name": "plate",
+          "type": "IMAGE",
+          "links": [
+            5
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "info",
+          "type": "STRING",
+          "links": [],
+          "slot_index": 1
+        }
+      ],
+      "inputs": [
+        {
+          "name": "plate",
+          "type": "IMAGE",
+          "link": 4
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "GrainMatchMEC",
+      "pos": [
+        1240,
+        220
+      ],
+      "size": [
+        320,
+        130
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "properties": {
+        "Node name for S&R": "GrainMatchMEC"
+      },
+      "title": "Grain Match",
+      "widgets_values": [
+        "estimated",
+        0.5
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            7
+          ],
+          "slot_index": 0
+        }
+      ],
+      "inputs": [
+        {
+          "name": "source",
+          "type": "IMAGE",
+          "link": 5
+        },
+        {
+          "name": "reference",
+          "type": "IMAGE",
+          "link": 6
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "SaveEXRMEC",
+      "pos": [
+        1620,
+        220
+      ],
+      "size": [
+        320,
+        130
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "properties": {
+        "Node name for S&R": "SaveEXRMEC"
+      },
+      "title": "Save EXR",
+      "widgets_values": [
+        "nukemax_master_%batch_num%",
+        "PIZ"
+      ],
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 7
+        }
+      ]
+    }
+  ],
+  "links": [
+    [
+      1,
+      1,
+      0,
+      3,
+      0,
+      "IMAGE"
+    ],
+    [
+      2,
+      1,
+      0,
+      4,
+      0,
+      "IMAGE"
+    ],
+    [
+      3,
+      3,
+      0,
+      4,
+      1,
+      "FLOW_FIELD"
+    ],
+    [
+      4,
+      4,
+      0,
+      5,
+      0,
+      "IMAGE"
+    ],
+    [
+      5,
+      5,
+      0,
+      6,
+      0,
+      "IMAGE"
+    ],
+    [
+      6,
+      2,
+      0,
+      6,
+      1,
+      "IMAGE"
+    ],
+    [
+      7,
+      6,
+      0,
+      7,
+      0,
+      "IMAGE"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {},
+  "version": 0.4
+}

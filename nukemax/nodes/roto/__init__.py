@@ -354,12 +354,85 @@ class RotoShapeToDiffusionGuidance:
         return (hard.clamp(0, 1), soft, latent.clamp(0, 1), json.dumps(prompts))
 
 
+# ---------------- Roto Keyframe Interpolator ----------------
+
+@resilient
+class RotoKeyframeInterp:
+    """Interpolate a sparse-keyframe ROTO_SHAPE to a dense per-frame ROTO_SHAPE.
+
+    The input shape stores a small set of keyframes (e.g. T=2 for frame
+    1 and frame 10). This node expands it to T_out frames using
+    smoothstep (Hermite) interpolation between adjacent keyframes — so
+    point positions and bezier handles tween smoothly, not snap.
+    """
+    DESCRIPTION = "Interpolate sparse-keyframe roto data to a dense per-frame ROTO_SHAPE using smoothstep tweening between keyframes."
+    CATEGORY = "NukeMax/Roto"
+    FUNCTION = "execute"
+    RETURN_TYPES = ("ROTO_SHAPE",)
+    RETURN_NAMES = ("roto",)
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "roto": ("ROTO_SHAPE", {}),
+                "keyframe_indices": ("STRING", {
+                    "default": "0,9",
+                    "tooltip": "Comma-separated 0-based frame indices the input keyframes correspond to.",
+                }),
+                "frame_count": ("INT", {"default": 10, "min": 1, "max": 4096}),
+                "easing": (("linear", "smoothstep", "smootherstep"), {"default": "smoothstep"}),
+            },
+        }
+
+    def execute(self, roto, keyframe_indices: str, frame_count: int, easing: str):
+        kf = [int(s.strip()) for s in keyframe_indices.split(",") if s.strip() != ""]
+        if len(kf) != roto.points.shape[0]:
+            # fallback: assume evenly spaced
+            kf = list(range(roto.points.shape[0]))
+        Tin, N = roto.points.shape[:2]
+        Tout = int(frame_count)
+        out_pts = torch.zeros(Tout, N, 2)
+        out_hin = torch.zeros(Tout, N, 2)
+        out_hout = torch.zeros(Tout, N, 2)
+        out_feather = torch.zeros(Tout, N)
+
+        def ease(t):
+            if easing == "linear":  return t
+            if easing == "smoothstep":   return t * t * (3 - 2 * t)
+            return t * t * t * (t * (t * 6 - 15) + 10)
+
+        for f in range(Tout):
+            # Find surrounding keyframes.
+            if f <= kf[0]:
+                a = b = 0; t = 0.0
+            elif f >= kf[-1]:
+                a = b = Tin - 1; t = 0.0
+            else:
+                for i in range(len(kf) - 1):
+                    if kf[i] <= f <= kf[i + 1]:
+                        a, b = i, i + 1
+                        span = max(1, kf[i + 1] - kf[i])
+                        t = (f - kf[i]) / span
+                        break
+            te = ease(t)
+            out_pts[f]     = roto.points[a] * (1 - te) + roto.points[b] * te
+            out_hin[f]     = roto.handles_in[a] * (1 - te) + roto.handles_in[b] * te
+            out_hout[f]    = roto.handles_out[a] * (1 - te) + roto.handles_out[b] * te
+            out_feather[f] = roto.feather[a] * (1 - te) + roto.feather[b] * te
+
+        return (RotoShape(points=out_pts, handles_in=out_hin, handles_out=out_hout,
+                          feather=out_feather, canvas_h=roto.canvas_h, canvas_w=roto.canvas_w,
+                          closed=roto.closed, name=roto.name),)
+
+
 NODE_CLASS_MAPPINGS = {
     "NukeMax_RotoSplineEditor": RotoSplineEditor,
     "NukeMax_RotoShapeFromFile": RotoShapeFromFile,
     "NukeMax_RotoShapeToAITracker": RotoShapeToAITracker,
     "NukeMax_RotoShapeRenderer": RotoShapeRenderer,
     "NukeMax_RotoShapeToDiffusionGuidance": RotoShapeToDiffusionGuidance,
+    "NukeMax_RotoKeyframeInterp": RotoKeyframeInterp,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -368,4 +441,5 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "NukeMax_RotoShapeToAITracker": "Roto Shape → AI Tracker",
     "NukeMax_RotoShapeRenderer": "Roto Shape Renderer",
     "NukeMax_RotoShapeToDiffusionGuidance": "Roto Shape → Diffusion Guidance",
+    "NukeMax_RotoKeyframeInterp": "Roto Keyframe Interp",
 }

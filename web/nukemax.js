@@ -9,6 +9,7 @@ import { app } from "../../scripts/app.js";
 import "./widgets/roto/roto_editor.js";
 import "./widgets/relight/light_placer.js";
 import "./widgets/audio/waveform_preview.js";
+import "./widgets/nkscript/copy_paste.js";
 
 app.registerExtension({
     name: "NukeMax.Base",

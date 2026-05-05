@@ -17,6 +17,7 @@ from .light_probe import LightProbe
 from .light_rig import Light, LightRig
 from .audio_features import AudioFeatures
 from .flow_field import FlowField
+from .deep_image import DeepImage
 
 # Registered ComfyUI socket type names (uppercase string conventions).
 TYPE_NAMES = (
@@ -28,6 +29,7 @@ TYPE_NAMES = (
     "LIGHT_RIG",
     "AUDIO_FEATURES",
     "FLOW_FIELD",
+    "DEEP_IMAGE",
 )
 
 __all__ = [
@@ -40,5 +42,6 @@ __all__ = [
     "LightRig",
     "AudioFeatures",
     "FlowField",
+    "DeepImage",
     "TYPE_NAMES",
 ]
