@@ -1,5 +1,5 @@
 """
-Metadata / routing nodes (MEC):
+Metadata / routing nodes (C2C):
   - MetadataWriterMEC: Write a JSON sidecar next to image outputs.
   - FrameRangeRouterMEC: Slice a video batch to a sub-range.
   - ShotMetadataNodeMEC: Read a shot.json descriptor from disk.
@@ -36,7 +36,7 @@ class MetadataWriterMEC:
     OUTPUT_TOOLTIPS = ("Pass-through image batch.", "Forward-slash path of the written sidecar.")
     FUNCTION = "write"
     OUTPUT_NODE = True
-    CATEGORY = "MaskEditControl/Metadata"
+    CATEGORY = "C2C/Metadata"
     DESCRIPTION = "Write a JSON sidecar; pass the image through."
 
     def write(self, image: torch.Tensor, sidecar_path: str, metadata_json: str, merge_existing: bool = False):
@@ -86,7 +86,7 @@ class FrameRangeRouterMEC:
     RETURN_NAMES = ("images", "mask", "frame_count")
     OUTPUT_TOOLTIPS = ("Sliced image batch.", "Sliced mask batch (zeros if no mask provided).", "Number of frames in the output batch.")
     FUNCTION = "route"
-    CATEGORY = "MaskEditControl/Metadata"
+    CATEGORY = "C2C/Metadata"
     DESCRIPTION = "Slice a video batch by [start:end:step]."
 
     def route(
@@ -125,7 +125,7 @@ class ShotMetadataNodeMEC:
     RETURN_NAMES = ("show", "shot", "task", "frame_in", "frame_out", "fps", "raw_json")
     OUTPUT_TOOLTIPS = ("Show name from the descriptor.", "Shot name from the descriptor.", "Task name from the descriptor.", "First frame of the shot.", "Last frame of the shot.", "Frame rate of the shot.", "Raw shot JSON re-serialized for downstream nodes.")
     FUNCTION = "read"
-    CATEGORY = "MaskEditControl/Metadata"
+    CATEGORY = "C2C/Metadata"
     DESCRIPTION = "Read a shot.json descriptor; missing fields return empty defaults."
 
     def read(self, shot_json_path: str):
@@ -152,7 +152,7 @@ NODE_CLASS_MAPPINGS = {
     "ShotMetadataNodeMEC": ShotMetadataNodeMEC,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "MetadataWriterMEC": "Metadata Writer (MEC)",
-    "FrameRangeRouterMEC": "Frame Range Router (MEC)",
-    "ShotMetadataNodeMEC": "Shot Metadata Reader (MEC)",
+    "MetadataWriterMEC": "Metadata Writer (C2C)",
+    "FrameRangeRouterMEC": "Frame Range Router (C2C)",
+    "ShotMetadataNodeMEC": "Shot Metadata Reader (C2C)",
 }

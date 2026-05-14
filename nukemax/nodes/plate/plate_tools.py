@@ -1,6 +1,6 @@
 """
 from ... import _interrupt_check as _IC
-Plate-tools nodes (MEC):
+Plate-tools nodes (C2C):
   - GrainMatchMEC: Extract grain spectrum from a reference plate and re-apply
     it to a clean image so synthetic content matches the source plate.
   - PlateStabilizerMEC: Affine-stabilize a video batch to its first frame
@@ -78,7 +78,7 @@ class GrainMatchMEC:
     RETURN_NAMES = ("image", "info_json")
     OUTPUT_TOOLTIPS = ("Target image batch with reference grain re-applied.", "JSON metadata describing grain std and parameters used.")
     FUNCTION = "match"
-    CATEGORY = "MaskEditControl/PlateTools"
+    CATEGORY = "C2C/PlateTools"
     DESCRIPTION = "Extract grain from a reference plate and re-apply it to target."
 
     def match(
@@ -164,7 +164,7 @@ class PlateStabilizerMEC:
     RETURN_NAMES = ("images", "info_json")
     OUTPUT_TOOLTIPS = ("Stabilized image batch warped to frame 0.", "JSON describing the backend and per-frame transform records.")
     FUNCTION = "stabilize"
-    CATEGORY = "MaskEditControl/PlateTools"
+    CATEGORY = "C2C/PlateTools"
     DESCRIPTION = "Stabilize a video batch to frame 0 via ORB+affine (cv2) or FFT translation."
 
     def stabilize(self, images: torch.Tensor, max_features: int = 500):
@@ -248,7 +248,7 @@ class CleanPlateExtractorMEC:
     RETURN_NAMES = ("clean_plate",)
     OUTPUT_TOOLTIPS = ("Single-frame clean plate computed as a per-pixel median.",)
     FUNCTION = "extract"
-    CATEGORY = "MaskEditControl/PlateTools"
+    CATEGORY = "C2C/PlateTools"
     DESCRIPTION = "Median across a batch (with optional mask exclusion) → clean plate."
 
     def extract(self, images: torch.Tensor, exclude_mask: torch.Tensor | None = None):
@@ -310,7 +310,7 @@ class DifferenceMatteMEC:
     RETURN_NAMES = ("mask",)
     OUTPUT_TOOLTIPS = ("Per-pixel difference mask in [0,1].",)
     FUNCTION = "compute"
-    CATEGORY = "MaskEditControl/PlateTools"
+    CATEGORY = "C2C/PlateTools"
     DESCRIPTION = "Difference matte: |a-b| → MASK with threshold + softness."
 
     def compute(
@@ -359,8 +359,8 @@ NODE_CLASS_MAPPINGS = {
     "DifferenceMatteMEC": DifferenceMatteMEC,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "GrainMatchMEC": "Grain Match (MEC)",
-    "PlateStabilizerMEC": "Plate Stabilizer (MEC)",
-    "CleanPlateExtractorMEC": "Clean Plate Extractor (MEC)",
-    "DifferenceMatteMEC": "Difference Matte (MEC)",
+    "GrainMatchMEC": "Grain Match (C2C)",
+    "PlateStabilizerMEC": "Plate Stabilizer (C2C)",
+    "CleanPlateExtractorMEC": "Clean Plate Extractor (C2C)",
+    "DifferenceMatteMEC": "Difference Matte (C2C)",
 }

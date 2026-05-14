@@ -33,7 +33,7 @@ class UniversalRerouteMEC:
     RETURN_NAMES = ("output",)
     OUTPUT_TOOLTIPS = ("Pass-through of the input value with matching type.",)
     FUNCTION = "passthrough"
-    CATEGORY = "MaskEditControl/Utils"
+    CATEGORY = "C2C/Utils"
     DESCRIPTION = (
         "Drop onto any connection to reroute it. Compact dot shape. "
         "Auto-adapts to IMAGE, LATENT, MASK, STRING, etc. "

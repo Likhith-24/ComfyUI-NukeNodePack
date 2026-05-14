@@ -179,7 +179,7 @@ class EXRMetadataReaderMEC:
         "Comma-separated list of channel names found in the header.",
     )
     FUNCTION = "read"
-    CATEGORY = "MaskEditControl/IO"
+    CATEGORY = "C2C/IO"
     DESCRIPTION = (
         "Read OpenEXR header (compression, channels, custom attributes) without "
         "decoding pixels. Uses OpenEXR if installed, otherwise pure-Python parser."
@@ -238,4 +238,4 @@ class EXRMetadataReaderMEC:
 
 
 NODE_CLASS_MAPPINGS = {"EXRMetadataReaderMEC": EXRMetadataReaderMEC}
-NODE_DISPLAY_NAME_MAPPINGS = {"EXRMetadataReaderMEC": "EXR Metadata Reader (MEC)"}
+NODE_DISPLAY_NAME_MAPPINGS = {"EXRMetadataReaderMEC": "EXR Metadata Reader (C2C)"}

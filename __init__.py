@@ -36,6 +36,9 @@ _ECOSYSTEMS = (
     ".nukemax.nodes.nkscript",
     # New (May 2026): Mocha Pro tracking / shape / lens / project import.
     ".nukemax.nodes.mocha",
+    # New (May 2026): STMap lens distortion + OCIO color transform.
+    ".nukemax.nodes.lens",
+    ".nukemax.nodes.ocio",
 )
 
 for mod_name in _ECOSYSTEMS:

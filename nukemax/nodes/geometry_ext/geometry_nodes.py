@@ -1,5 +1,5 @@
 """
-Geometry / pass-data nodes (MEC):
+Geometry / pass-data nodes (C2C):
   - DepthWarpMEC: Depth-driven parallax warp (cheap stereo synth).
   - NormalToCurvatureMEC: Compute curvature/divergence from a normal pass.
   - PositionPassSplitterMEC: Split a position pass into X/Y/Z masks (or images).
@@ -42,7 +42,7 @@ class DepthWarpMEC:
     RETURN_NAMES = ("image",)
     OUTPUT_TOOLTIPS = ("Image warped horizontally according to the depth pass.",)
     FUNCTION = "warp"
-    CATEGORY = "MaskEditControl/Geometry"
+    CATEGORY = "C2C/Geometry"
     DESCRIPTION = "Horizontal parallax warp driven by a depth pass."
 
     def warp(
@@ -90,7 +90,7 @@ class NormalToCurvatureMEC:
     RETURN_NAMES = ("curvature",)
     OUTPUT_TOOLTIPS = ("Curvature mask in [0,1]; 0.5 is flat, brighter is convex.",)
     FUNCTION = "compute"
-    CATEGORY = "MaskEditControl/Geometry"
+    CATEGORY = "C2C/Geometry"
     DESCRIPTION = "Compute curvature mask from a tangent-space normal pass."
 
     def compute(self, normal: torch.Tensor, scale: float = 1.0):
@@ -141,7 +141,7 @@ class PositionPassSplitterMEC:
     RETURN_NAMES = ("x_mask", "y_mask", "z_mask")
     OUTPUT_TOOLTIPS = ("Normalized X-axis mask in [0,1].", "Normalized Y-axis mask in [0,1].", "Normalized Z-axis mask in [0,1].")
     FUNCTION = "split"
-    CATEGORY = "MaskEditControl/Geometry"
+    CATEGORY = "C2C/Geometry"
     DESCRIPTION = "Split position pass into X/Y/Z masks (auto- or manually-ranged)."
 
     def split(
@@ -171,7 +171,7 @@ NODE_CLASS_MAPPINGS = {
     "PositionPassSplitterMEC": PositionPassSplitterMEC,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "DepthWarpMEC": "Depth Warp (MEC)",
-    "NormalToCurvatureMEC": "Normal → Curvature (MEC)",
-    "PositionPassSplitterMEC": "Position Pass Splitter (MEC)",
+    "DepthWarpMEC": "Depth Warp (C2C)",
+    "NormalToCurvatureMEC": "Normal → Curvature (C2C)",
+    "PositionPassSplitterMEC": "Position Pass Splitter (C2C)",
 }

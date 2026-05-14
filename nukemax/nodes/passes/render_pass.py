@@ -1,5 +1,5 @@
 """
-Render-pass nodes (MEC):
+Render-pass nodes (C2C):
   - MergeRenderPassesMEC: Composite beauty + diffuse/specular/emission/AO passes.
   - DepthOfFieldMaskMEC: Convert a Z-depth pass into a per-pixel CoC alpha
     mask suitable for driving a blur node.
@@ -69,7 +69,7 @@ class MergeRenderPassesMEC:
     RETURN_NAMES = ("image",)
     OUTPUT_TOOLTIPS = ("Composited image with beauty plus weighted auxiliary passes.",)
     FUNCTION = "merge"
-    CATEGORY = "MaskEditControl/Render"
+    CATEGORY = "C2C/Render"
     DESCRIPTION = "Composite beauty + auxiliary render passes."
 
     def merge(
@@ -130,7 +130,7 @@ class DepthOfFieldMaskMEC:
     RETURN_NAMES = ("coc_mask", "in_focus_mask")
     OUTPUT_TOOLTIPS = ("Defocus alpha mask (1=fully out of focus).", "Complementary in-focus mask (1=in focus).")
     FUNCTION = "compute"
-    CATEGORY = "MaskEditControl/Render"
+    CATEGORY = "C2C/Render"
     DESCRIPTION = "Convert depth pass → CoC mask (defocus alpha) and in-focus mask."
 
     def compute(
@@ -160,6 +160,6 @@ NODE_CLASS_MAPPINGS = {
     "DepthOfFieldMaskMEC": DepthOfFieldMaskMEC,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "MergeRenderPassesMEC": "Merge Render Passes (MEC)",
-    "DepthOfFieldMaskMEC": "Depth-of-Field Mask (MEC)",
+    "MergeRenderPassesMEC": "Merge Render Passes (C2C)",
+    "DepthOfFieldMaskMEC": "Depth-of-Field Mask (C2C)",
 }

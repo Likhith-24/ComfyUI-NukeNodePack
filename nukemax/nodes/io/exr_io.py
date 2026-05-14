@@ -1,6 +1,6 @@
 """
 from ... import _interrupt_check as _IC
-EXR I/O nodes (MEC):
+EXR I/O nodes (C2C):
   - LoadEXRMEC: Load an EXR file as IMAGE [B,H,W,3] in scene-linear.
   - SaveEXRMEC: Save IMAGE as EXR (16-bit half by default).
 
@@ -84,7 +84,7 @@ class LoadEXRMEC:
     RETURN_NAMES = ("image", "info_json")
     OUTPUT_TOOLTIPS = ("Loaded image as scene-linear IMAGE [1,H,W,3] float32.", "JSON describing the backend used and basic file info.")
     FUNCTION = "load"
-    CATEGORY = "MaskEditControl/IO"
+    CATEGORY = "C2C/IO"
     DESCRIPTION = "Load EXR as scene-linear IMAGE. Tries OpenEXR → imageio."
 
     def load(self, file_path: str):
@@ -169,7 +169,7 @@ class SaveEXRMEC:
     OUTPUT_TOOLTIPS = ("JSON list of written frames with backend info and forward-slash paths.",)
     FUNCTION = "save"
     OUTPUT_NODE = True
-    CATEGORY = "MaskEditControl/IO"
+    CATEGORY = "C2C/IO"
     DESCRIPTION = "Save IMAGE batch as EXR(s)."
 
     def save(self, image: torch.Tensor, file_path: str, half_float: bool = True):
@@ -209,6 +209,6 @@ class SaveEXRMEC:
 
 NODE_CLASS_MAPPINGS = {"LoadEXRMEC": LoadEXRMEC, "SaveEXRMEC": SaveEXRMEC}
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "LoadEXRMEC": "Load EXR (MEC)",
-    "SaveEXRMEC": "Save EXR (MEC)",
+    "LoadEXRMEC": "Load EXR (C2C)",
+    "SaveEXRMEC": "Save EXR (C2C)",
 }

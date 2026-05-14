@@ -1,5 +1,5 @@
 """
-Color science nodes (MEC):
+Color science nodes (C2C):
   - ColorSpaceConvertMEC: sRGB ↔ Linear ↔ Rec.709 ↔ ACEScg conversions.
   - LUTApplyMEC: Apply a .cube LUT (1D or 3D) to an IMAGE.
   - ExposureGradeMEC: Exposure (stops), white-balance temp/tint, contrast pivot.
@@ -125,7 +125,7 @@ class ColorSpaceConvertMEC:
     RETURN_NAMES = ("image",)
     OUTPUT_TOOLTIPS = ("Image converted into the destination color space.",)
     FUNCTION = "convert"
-    CATEGORY = "MaskEditControl/Color"
+    CATEGORY = "C2C/Color"
     DESCRIPTION = "Convert IMAGE between sRGB, linear, Rec.709, and ACEScg."
 
     def convert(self, image: torch.Tensor, src_space: str, dst_space: str):
@@ -273,7 +273,7 @@ class LUTApplyMEC:
     RETURN_NAMES = ("image", "info_json")
     OUTPUT_TOOLTIPS = ("LUT-graded image clamped to [0,1].", "JSON metadata describing LUT dim, size, and strength.")
     FUNCTION = "apply"
-    CATEGORY = "MaskEditControl/Color"
+    CATEGORY = "C2C/Color"
     DESCRIPTION = "Apply a .cube LUT (Adobe format, 1D or 3D) with optional strength blend."
 
     def apply(self, image: torch.Tensor, lut_path: str, strength: float = 1.0):
@@ -344,7 +344,7 @@ class ExposureGradeMEC:
     RETURN_NAMES = ("image",)
     OUTPUT_TOOLTIPS = ("Graded image clamped to [0,1].",)
     FUNCTION = "grade"
-    CATEGORY = "MaskEditControl/Color"
+    CATEGORY = "C2C/Color"
     DESCRIPTION = "Exposure (stops), WB (temp/tint), and contrast around a pivot."
 
     def grade(
@@ -382,7 +382,7 @@ NODE_CLASS_MAPPINGS = {
     "ExposureGradeMEC": ExposureGradeMEC,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "ColorSpaceConvertMEC": "Color Space Convert (MEC)",
-    "LUTApplyMEC": "LUT Apply (.cube) (MEC)",
-    "ExposureGradeMEC": "Exposure Grade (MEC)",
+    "ColorSpaceConvertMEC": "Color Space Convert (C2C)",
+    "LUTApplyMEC": "LUT Apply (.cube) (C2C)",
+    "ExposureGradeMEC": "Exposure Grade (C2C)",
 }
